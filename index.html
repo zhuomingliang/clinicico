@@ -3230,10 +3230,10 @@ a network field in the following JSON format: </p>
 </code></pre>
 
 <p>Where each of the treatments must be present in the data and
-vice-versa. Furthermore for dichotomous networks the mean and
-sampleSize van replaced by the field responders. The description
-is optional. The excerpt above specifies a network with
-continuous data for two two-armed studies comparing treatment
+vice-versa. Furthermore for dichotomous networks the <code>mean</code> and
+<code>sampleSize</code> can be replaced by the field <code>responders</code>. 
+The description is optional. The excerpt above specifies a network with
+continuous data for two two-armed studies comparing treatments
 A and B. </p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defroutes routes
@@ -3271,15 +3271,16 @@ A and B. </p>
     (wrap-exception-handler)
     (wrap-response-logger)
     (wrap-json-response)
-    (wrap-restful-response)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clinicico.http" name="clinicico.http"><h1 class="project-name">clinicico.http</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns clinicico.http
-  (:use ring.util.response
-        [clojure.string :only [upper-case join]]))</pre></td></tr><tr><td class="docs"><p>HTTP 
-These functions provide helpers for creating Ring responses. 
+    (wrap-restful-response)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clinicico.http" name="clinicico.http"><h1 class="project-name">clinicico.http</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>HTTP</h2>
+
+<p>These functions provide helpers for creating Ring responses. 
 They should only be used when appropriate, see associated HTTP Spec. for
 detaills. Note that each of the Middleware handlers can abort the request
 handling and can sent its own HTTP status.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns clinicico.http
+  (:use ring.util.response
+        [clojure.string :only [upper-case join]]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn url-from 
   [{scheme :scheme server-name :server-name server-port :server-port uri :uri}
    &amp; path-elements]
@@ -3396,7 +3397,8 @@ which processes only one job at a time. The jobs can be queried for status.</p>
 
 <blockquote>
   <p>Middleware are higher-level functions that add additional functionality to handlers. 
-  the first argument of a middleware function should be a handler, and its return value should be a new handler function.</p>
+  the first argument of a middleware function should be a handler, 
+  and its return value should be a new handler function.</p>
 </blockquote>
 
 <p>See <a href="https://github.com/ring-clojure/ring/wiki/Concepts">ring documentation wiki</a></p>
@@ -3418,10 +3420,12 @@ which processes only one job at a time. The jobs can be queried for status.</p>
     (.writeString jg (.getName (class e)))
     (.writeFieldName jg &quot;message&quot;)
     (.writeString jg (.getMessage e))
-    (.writeEndObject jg))})</pre></td></tr><tr><td class="docs"><p> Middleware to handle exceptions thrown by the underlying code.
-   - Returns HTTP/404 when <code>ResourceNotFound</code> exception was thrown, 
-   - Returns HTTP/400 when <code>InvalidArgumentException</code> was thrown (e.g. missing JSON arguments)
-   - Returns HTTP/500 for all unhandled thrown <code>Exception</code>.</p>
+    (.writeEndObject jg))})</pre></td></tr><tr><td class="docs"><p> Middleware to handle exceptions thrown by the underlying code.</p>
+
+<pre><code>  - Returns HTTP/404 when `ResourceNotFound` exception was thrown, 
+  - Returns HTTP/400 when `InvalidArgumentException` was thrown (e.g. missing JSON arguments)
+  - Returns HTTP/500 for all unhandled thrown `Exception`.
+</code></pre>
 </td><td class="codes"><pre class="brush: clojure">(defn wrap-exception-handler 
   [handler]
   (fn [req]
@@ -3466,10 +3470,11 @@ which processes only one job at a time. The jobs can be queried for status.</p>
            (org.rosuda.REngine REXP
                                REXPList
                                RList)
-           (org.rosuda.REngine.Rserve RConnection)))</pre></td></tr><tr><td class="docs"><p>Loads the GeMTC library to the provided RConnection</p>
+           (org.rosuda.REngine.Rserve RConnection)))</pre></td></tr><tr><td class="docs"><p>Loads the <a href="http://cran.r-project.org/web/packages/gemtc/index.html">GeMTC library</a> 
+   to the provided <code>RConnection</code>.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn load-mtc! 
   [R] 
-  (.voidEval R &quot;suppressWarnings(require('gemtc',quietly=TRUE))&quot;))</pre></td></tr><tr><td class="docs"><p>Reads the network present in the current RConnection and transforms it into a map</p>
+  (.voidEval R &quot;suppressWarnings(require('gemtc',quietly=TRUE))&quot;))</pre></td></tr><tr><td class="docs"><p>Reads the network present in the current <code>RConnection</code> and transforms it into a map.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn read-network 
   [R]
   (let [network (R/as-list (.get R &quot;network&quot; nil true)) 
@@ -3496,12 +3501,12 @@ which processes only one job at a time. The jobs can be queried for status.</p>
        (.assign R &quot;description&quot; (R/to-REXPVector description))
        (.assign R &quot;data&quot; (R/RList-as-dataframe (R/map-to-RList (map-rows-to-cols data))))
        (.assign R &quot;treatments&quot; (.eval R (REXPList. (R/map-to-RList (map-rows-to-cols treatments))) nil false))
-       (.assign R &quot;network&quot; (R/parse R (str &quot;mtc.network(data, description, treatments)&quot;)))))))</pre></td></tr><tr><td class="docs"><p>Loads a GeMTC network into an RConnection.</p>
+       (.assign R &quot;network&quot; (R/parse R (str &quot;mtc.network(data, description, treatments)&quot;)))))))</pre></td></tr><tr><td class="docs"><p>Loads a GeMTC network into an <code>RConnection</code>.</p>
 
 <ul>
 <li>If the params field contains a file it is assumed to be a 
- GeMTC filed and proccessed accordingly.</li>
-<li>If it is a network it should be in the network JSON format</li>
+ GeMTC file and proccessed accordingly.</li>
+<li>If it is a network it should be in the network JSON format.</li>
 </ul>
 </td><td class="codes"><pre class="brush: clojure">(defn load-network! 
   [R params]
@@ -3536,7 +3541,7 @@ which processes only one job at a time. The jobs can be queried for status.</p>
    please modify the loaded consistency.R script.</p>
 
 <p>   This script should return a list of results with 
-   descriptions and a list of images with associated descriptions</p>
+   descriptions and a list of images with associated descriptions.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn- analyze-consistency!
   [R options] 
   (let [script-file &quot;consistency.R&quot;] 
@@ -3572,7 +3577,7 @@ which processes only one job at a time. The jobs can be queried for status.</p>
             [clj-time.core :as time]))</pre></td></tr><tr><td class="docs"><h2>Store</h2>
 
 <p>A simple MongoDB storage for the produced results. 
-Takes any map that includes a network and a results field</p>
+Takes any map that includes a network and a results field.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def mongo-options
   {:host &quot;localhost&quot;  
