@@ -3182,7 +3182,8 @@ the user to retrieve the jobs he or she submitted but not others. </p>
         [clinicico.util]
         [ring.middleware.session]
         [clinicico.middleware]
-        [ring.middleware.format-response :only [wrap-restful-response wrap-json-response]])
+        [ring.middleware.format-response :only [wrap-restful-response 
+                                                wrap-json-response]])
   (:require [compojure.handler :as handler]
             [ring.util.response :as resp]
             [clinicico.http :as http]
