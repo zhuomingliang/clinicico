@@ -3033,7 +3033,7 @@ net.brehaut.ClojureTools = (function (SH) {
 
 <p>R interoperability is provided by <a href="http://www.rforge.net/Rserve/">Rserve</a>. 
 RServe provides both a TCP/IP server for calling R functionality as well as
-a Java library for convenient access to a Rserve.  </p>
+a Java library for convenient access to an Rserve.  </p>
 
 <p>The functions below are mostly utilities for converting back and forth
 between native Clojure representations (maps and vectors) and RServes'
@@ -3171,11 +3171,11 @@ classes.  </p>
                 &quot;/&quot;))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clinicico.handler" name="clinicico.handler"><h1 class="project-name">clinicico.handler</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Clinici.co</h2>
 
 <p>Clinici.co provides a way for exposing R scripts as a web service using 
-<a href="http://en.wikipedia.org/wiki/Representational_state_transfer">REST</a>
+<a href="http://en.wikipedia.org/wiki/Representational_state_transfer">REST</a>.
 Currently this framework handles the loading and running of GeMTC consistency
 models, but should eventually not be restricted to this. </p>
 
-<p>The typical life time of a Clinici.co request is roughly as follows: </p>
+<p>The typical life time of a Clinici.co session is roughly as follows: </p>
 
 <ol>
 <li>The users submits JSON or a file with optional options to the appropriate analysis path using <code>POST</code>. 
@@ -3213,7 +3213,7 @@ the user to retrieve the jobs he or she submitted but not others. </p>
 </td><td class="codes"><pre class="brush: clojure">(defn main [] ())</pre></td></tr><tr><td class="docs"><h3>Consistency models</h3>
 
 <p>Consistency models can be created based on a GeMTC network file
-in a multi-part form submit, or alternatively by providing
+in a multi-part form submit or, alternatively, by providing
 a network field in the following JSON format: </p>
 
 <pre><code>{"description":"",
@@ -3379,7 +3379,7 @@ function (or lambda) into the job queue. The job queue is implemented using
 a <a href="http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/ThreadPoolExecutor.html">ThreadPoolExecutor</a>
 which processes only one job at a time. The jobs can be queried for status.
 The previous attempt at solving the problem can be found on 
-<a href="http://stackoverflow.com/questions/14673108/asynchronous-job-queue-for-web-service-in-clojure">StackOverflow</a></p>
+<a href="http://stackoverflow.com/questions/14673108/asynchronous-job-queue-for-web-service-in-clojure">StackOverflow</a>.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns clinicico.jobs
   (:use clinicico.config) 
