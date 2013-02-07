@@ -3044,7 +3044,9 @@ classes.  </p>
   (:require [clojure.java.io :as io])
   (:import (org.rosuda.REngine)
            (org.rosuda.REngine REXP RList)
-           (org.rosuda.REngine REXPDouble REXPLogical REXPFactor REXPInteger REXPString REXPGenericVector)
+           (org.rosuda.REngine REXPDouble REXPLogical 
+                               REXPFactor REXPInteger 
+                               REXPString REXPGenericVector)
            (org.rosuda.REngine.Rserve RConnection)))</pre></td></tr><tr><td class="docs"><p>Connect to an RServe instance. Each connection creates it's own workspace
   and forks the existing R process, effectively sandboxing the R operations
   Returns an <a href="http://rforge.net/org/doc/org/rosuda/REngine/Rserve/RConnection.html">RConnection</a> 
