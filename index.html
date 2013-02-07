@@ -3046,17 +3046,21 @@ classes.  </p>
            (org.rosuda.REngine REXP RList)
            (org.rosuda.REngine REXPDouble REXPLogical REXPFactor REXPInteger REXPString REXPGenericVector)
            (org.rosuda.REngine.Rserve RConnection)))</pre></td></tr><tr><td class="docs"><p>Connect to an RServe instance. Each connection creates it's own workspace
-  and forks the existing R process, effectively sandboxing the R operations</p>
+  and forks the existing R process, effectively sandboxing the R operations
+  Returns an <a href="http://rforge.net/org/doc/org/rosuda/REngine/Rserve/RConnection.html">RConnection</a> 
+  which is referred to as R in the code</p>
 </td><td class="codes"><pre class="brush: clojure">(defn connect 
  [] 
   (let [conn (try 
                (RConnection.)
                (catch Exception e (throw (Exception. &quot;Could not connect to RServe&quot; e))))]
     (if (.isConnected conn) 
-      conn)))</pre></td></tr><tr><td class="docs"><p>Converts a REXPGenericFactor, or a nested list, to a RList.</p>
+      conn)))</pre></td></tr><tr><td class="docs"><p>Converts a 
+   <a href="http://rforge.net/org/doc/org/rosuda/REngine/REXPGenericVector.html">REXPGenericVector</a>, 
+   or a nested list, to an <a href="http://rforge.net/org/doc/org/rosuda/REngine/RList.html">RList</a>.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn as-list 
   ([data] (.asList ^REXPGenericVector data))
-  ([data $field] (as-list (.at ^RList data $field))))</pre></td></tr><tr><td class="docs"><p>Conditionally converts a REXPVector to primitives</p>
+  ([data $field] (as-list (.at ^RList data $field))))</pre></td></tr><tr><td class="docs"><p>Conditionally converts a <a href="http://rforge.net/org/doc/org/rosuda/REngine/REXPVector.html">REXPVector</a> to primitives</p>
 </td><td class="codes"><pre class="brush: clojure">(defn- convert-fn 
   ^{:todo &quot;make sure this is complete&quot;}
   [field] 
@@ -3099,7 +3103,7 @@ classes.  </p>
                      (seq ((convert-fn field) field)))) ks))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn- factor-indexes [lst] 
   (let [levels (sort (distinct lst))]
-    (map #(inc (.indexOf levels %)) lst)))</pre></td></tr><tr><td class="docs"><p>Converts a sequential or a primitive to a REXPVector</p>
+    (map #(inc (.indexOf levels %)) lst)))</pre></td></tr><tr><td class="docs"><p>Converts a sequential or a primitive to a subclass of <a href="http://rforge.net/org/doc/org/rosuda/REngine/REXPVector.html">REXPVector</a></p>
 </td><td class="codes"><pre class="brush: clojure">(defn to-REXPVector
   [data-seq]
   (let [is-seq (sequential? data-seq)
