@@ -3144,7 +3144,10 @@ classes.  </p>
       (.load props reader)
       (into {} (for [[k v] props] [(keyword k) (read-string v)])))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def ^:dynamic *config* (load-properties (resource &quot;config.properties&quot;)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def base-url (str (:scheme *config*) &quot;://&quot;  (:server-name *config*) &quot;:&quot; (:server-port *config*) &quot;/&quot;)) </pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clinicico.handler" name="clinicico.handler"><h1 class="project-name">clinicico.handler</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Clinici.co</h2>
+</td><td class="codes"><pre class="brush: clojure">(def base-url (str 
+                (:scheme *config*) &quot;://&quot;  
+                (:server-name *config*) &quot;:&quot; 
+                (:server-port *config*) &quot;/&quot;)) </pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clinicico.handler" name="clinicico.handler"><h1 class="project-name">clinicico.handler</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Clinici.co</h2>
 
 <p>Clinici.co provides a way for exposing R scripts as a web service using 
 <a href="http://en.wikipedia.org/wiki/Representational_state_transfer">REST</a>
