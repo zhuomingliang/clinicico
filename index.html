@@ -3135,7 +3135,7 @@ classes.  </p>
                    (into-array String (sort (distinct data-seq)))) 
       (instance? String el) 
       (REXPString. (if is-seq (into-array String data-seq) el)) 
-      :else (throw (IllegalArgumentException. (str &quot;Don't know how to parse &quot; (class el)))))))</pre></td></tr><tr><td class="docs"><p>Converts a map to an RList, using the to-REXPVector 
+      :else (throw (IllegalArgumentException. (str &quot;Cannot parse &quot; (class el)))))))</pre></td></tr><tr><td class="docs"><p>Converts a map to an RList, using the to-REXPVector 
    to convert underlying elements to REXPVectors.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn map-to-RList   
   [data]
