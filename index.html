@@ -3048,11 +3048,12 @@ classes.  </p>
                                REXPFactor REXPInteger 
                                REXPString REXPGenericVector)
            (org.rosuda.REngine.Rserve RConnection)))</pre></td></tr><tr><td class="docs"><p>Connect to an RServe instance. Each connection creates it's own workspace
-  and forks the existing R process, effectively sandboxing the R operations
-  Returns an <a href="http://rforge.net/org/doc/org/rosuda/REngine/Rserve/RConnection.html">RConnection</a> 
-  which is referred to as R in the code.</p>
+   and forks the existing R process, effectively sandboxing the R operations.</p>
+
+<p>   Returns an <a href="http://rforge.net/org/doc/org/rosuda/REngine/Rserve/RConnection.html">RConnection</a> 
+   which is referred to as R in the code.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn connect 
- [] 
+  [] 
   (let [conn (try 
                (RConnection.)
                (catch Exception e (throw (Exception. &quot;Could not connect to RServe&quot; e))))]
@@ -3068,10 +3069,10 @@ classes.  </p>
   ^{:todo &quot;make sure this is complete&quot;}
   [field] 
   (cond  ;; REXPFactor is-a REXPInteger, so the order matters
-    (instance? REXPFactor field) (comp #(.asStrings %) #(.asFactor ^REXPFactor %))
-    (instance? REXPInteger field) #(.asIntegers ^REXPInteger %)
-    (instance? REXPDouble field) #(.asDoubles ^REXPDouble %)
-    :else (throw (Exception. (str &quot;Could not convert field &quot; field)))))</pre></td></tr><tr><td class="docs"><p>Returns a field in a list as Clojure sequence (seq) using the <code>convert-fn</code>.
+        (instance? REXPFactor field) (comp #(.asStrings %) #(.asFactor ^REXPFactor %))
+        (instance? REXPInteger field) #(.asIntegers ^REXPInteger %)
+        (instance? REXPDouble field) #(.asDoubles ^REXPDouble %)
+        :else (throw (Exception. (str &quot;Could not convert field &quot; field)))))</pre></td></tr><tr><td class="docs"><p>Returns a field in a list as Clojure sequence (seq) using the <code>convert-fn</code>.
    Rough equivalent to R's data$field accessor.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn in-list 
   [data $field]
@@ -3080,9 +3081,11 @@ classes.  </p>
       (seq ((convert-fn members) members))
       nil)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn parse [^RConnection R cmd] 
-  (.parseAndEval R cmd nil true))</pre></td></tr><tr><td class="docs"><p>Plots an existing R variable (must be present in the RConnection!)
-   Outputs the results to an equally named file in the current workdir. 
-   Requires Cairo package to be present and loaded.</p>
+  (.parseAndEval R cmd nil true))</pre></td></tr><tr><td class="docs"><p>Plots an existing R variable (must be present in the RConnection!).</p>
+
+<p>   Outputs the results to an equally named file in the current workdir. </p>
+
+<p>   Requires Cairo package to be present and loaded.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn plot 
   [^RConnection R item] 
   (let [img-dev (parse R (str &quot;try(png('&quot;item&quot;.png'))&quot;))]
@@ -3117,16 +3120,16 @@ classes.  </p>
         el (if is-seq (first data-seq) data-seq)]
     (cond 
       (instance? Integer el) 
-        (REXPInteger. (if is-seq (int-array data-seq) (int el))) 
+      (REXPInteger. (if is-seq (int-array data-seq) (int el))) 
       (instance? Boolean el) 
-        (REXPLogical. (if is-seq (boolean-array data-seq) (boolean el))) 
+      (REXPLogical. (if is-seq (boolean-array data-seq) (boolean el))) 
       (instance? Double el) 
-        (REXPDouble. (if is-seq (double-array data-seq) (double el))) 
+      (REXPDouble. (if is-seq (double-array data-seq) (double el))) 
       (and (instance? String el) is-seq (every? #(re-matches #&quot;\w*&quot; %) data-seq)) 
-        (REXPFactor. (int-array (factor-indexes data-seq)) 
-                     (into-array String (sort (distinct data-seq)))) 
+      (REXPFactor. (int-array (factor-indexes data-seq)) 
+                   (into-array String (sort (distinct data-seq)))) 
       (instance? String el) 
-        (REXPString. (if is-seq (into-array String data-seq) el)) 
+      (REXPString. (if is-seq (into-array String data-seq) el)) 
       :else (throw (IllegalArgumentException. (str &quot;Don't know how to parse &quot; (class el)))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn map-to-RList [data]
   &quot;Converts a map to an RList, using the to-REXPVector 
