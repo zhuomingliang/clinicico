@@ -3436,9 +3436,9 @@ which processes only one job at a time. The jobs can be queried for status.</p>
     (.writeString jg (.getMessage e))
     (.writeEndObject jg))})</pre></td></tr><tr><td class="docs"><p> Middleware to handle exceptions thrown by the underlying code.</p>
 
-<pre><code>  - Returns HTTP/404 when `ResourceNotFound` exception was thrown, 
-  - Returns HTTP/400 when `InvalidArgumentException` was thrown (e.g. missing JSON arguments)
-  - Returns HTTP/500 for all unhandled thrown `Exception`.
+<pre><code>- Returns `HTTP/404` when `ResourceNotFound` exception was thrown, 
+- Returns `HTTP/400` when `InvalidArgumentException` was thrown (e.g. missing JSON arguments)
+- Returns `HTTP/500` for all unhandled thrown `Exception`.
 </code></pre>
 </td><td class="codes"><pre class="brush: clojure">(defn wrap-exception-handler 
   [handler]
