@@ -3040,31 +3040,32 @@ net.brehaut.ClojureTools = (function (SH) {
             [clojure.string :as strs]
             [clojure.tools.logging :as log])
   (:import (org.rosuda.REngine REXP RList)
+           (org.rosuda.REngine.Rserve RConnection)
            (org.rosuda.REngine REXPDouble REXPLogical 
                                REXPFactor REXPInteger 
                                REXPString REXPGenericVector
                                REXPNull REngineException)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def validators (atom {&quot;consistency&quot; (validation-set 
                                        (presence-of :network))}))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn copy-to-r 
-  [R file filename]
+</td><td class="codes"><pre class="brush: clojure">(defn copy-to-r! 
+  [^RConnection R file filename]
   (with-open [r-file (.createFile R filename)] 
     (io/copy file r-file)))</pre></td></tr><tr><td class="docs"><p>Finds the R file with the associated analysis 
    name and load its into an RConnection.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn load-analysis! 
-  [R analysis]
+  [^RConnection R analysis]
   (let [script (io/as-file (io/resource (str &quot;R/&quot; analysis &quot;.R&quot;)))]
     (if (nil? script)
       (throw (IllegalArgumentException. (str &quot;Could not find specified analysis &quot; analysis)))
       (do
-        (copy-to-r R script analysis) 
+        (copy-to-r! R script analysis) 
         (.voidEval R (str &quot;source('&quot;script&quot;')&quot;))
         (.removeFile R analysis)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn- parse-results-list [^RList lst] 
   (let [names (.keys lst)
         conv {&quot;matrix&quot; #(R/parse-matrix %)
               &quot;data.frame&quot; #(map-cols-to-rows (R/into-clj %))}]
-    (map (fn [k] (let [itm (.asList (.at lst k))
+    (map (fn [k] (let [itm (R/as-list (.at lst k))
                        data (.at itm &quot;data&quot;)
                        desc (R/into-clj (.at itm &quot;description&quot;))
                        data-type (R/into-clj (.at itm &quot;type&quot;))]
@@ -3078,35 +3079,35 @@ net.brehaut.ClojureTools = (function (SH) {
    (str base-url &quot;generated/&quot; workspace &quot;/&quot; img)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn- parse-results [^REXP results]
   (try 
-    (let [data (.asList results)
-          images (.asList (.at data &quot;images&quot;))
-          results (.asList (.at data &quot;results&quot;))]
+    (let [data (R/as-list results)
+          images (R/as-list (.at data &quot;images&quot;))
+          results (R/as-list (.at data &quot;results&quot;))]
       {:images (map-cols-to-rows 
                  {:url (map #(url-for-img-path %) 
-                            (map #(.asString (.at (.asList %) &quot;url&quot;)) images))
-                  :description (map #(.asString (.at (.asList %) &quot;description&quot;)) images)})
+                            (map #(.asString (.at (R/as-list %) &quot;url&quot;)) images))
+                  :description (map #(.asString (.at (R/as-list %) &quot;description&quot;)) images)})
        :results (parse-results-list results)})
-    (catch Exception e (R/into-clj results)))) ;; Fallback to generic structure</pre></td></tr><tr><td class="docs"><p>Fallback to generic structure</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
+    (catch Exception e (R/into-clj results)))) ; Fallback to generic structure</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn dispatch 
   [analysis params]
   (if (not (valid? (get @validators analysis (validation-set)) params))
-    (throw (IllegalArgumentException. (str &quot;Provided parameters were not valid for analysis &quot; analysis)))
-    (let [files (select-keys params (for [[k v] params :when (contains? v :file)] k)) ; These are just the files to be copied
-          options (into {} (map (fn [[k v]] ; We replace the value of each of the files as a map to a their filename
+    (throw (IllegalArgumentException. 
+             (str &quot;Provided parameters were not valid for analysis &quot; analysis)))
+    (let [files (select-keys params (for [[k v] params :when (contains? v :file)] k))
+          options (into {} (map (fn [[k v]]
                                   (if (contains? v :file) 
                                     [k {&quot;file&quot; (get-in v [:file :filename])}] 
                                     [k v])) params))]
-      (with-open [R (R/connect)]
+      (with-open [^RConnection R (R/connect)]
         (doall (map 
-                 (fn [[k v]] (copy-to-r R (get-in v [:file :tempfile]) (get-in v [:file :filename]))) files))
+                 (fn [[k v]] 
+                   (copy-to-r! R (get-in v [:file :tempfile]) (get-in v [:file :filename]))) files))
         (load-analysis! R analysis)
-        (log/debug options)
         (R/assign R &quot;params&quot; options)
         {:results {(keyword analysis) (parse-results (R/parse R (str analysis &quot;(params)&quot;) false))}}))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clinicico.R.store" name="clinicico.R.store"><h1 class="project-name">clinicico.R.store</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Store</h2>
 
 <p>A simple MongoDB storage for the produced results. 
-Takes any map that includes a network and a results field.</p>
+Takes any map that includes a results field.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns clinicico.R.store
   (:import [org.bson.types ObjectId])
@@ -3189,7 +3190,7 @@ classes.  </p>
     (if (.isConnected conn) 
       conn)))</pre></td></tr><tr><td class="docs"><p>Converts a 
    <a href="http://rforge.net/org/doc/org/rosuda/REngine/REXPGenericVector.html">REXPGenericVector</a>, 
-   or a nested list, to an <a href="http://rforge.net/org/doc/org/rosuda/REngine/RList.html">RList</a>.</p>
+   to an <a href="http://rforge.net/org/doc/org/rosuda/REngine/RList.html">RList</a>.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn as-list 
   ([data] (.asList ^REXPGenericVector data)))</pre></td></tr><tr><td class="docs"><p>Conditionally converts a 
    <a href="http://rforge.net/org/doc/org/rosuda/REngine/REXPVector.html">REXPVector</a> to primitives.</p>
@@ -3231,7 +3232,7 @@ classes.  </p>
                           (first-or-seq ((convert-fn field) field)))) data)]
       (if (.isNamed ^RList data)
         (zipmap (.keys ^RList data) values)
-        values))))</pre></td></tr><tr><td class="docs"><p>Converts the given REXP to a Clojure representation</p>
+        (vec values)))))</pre></td></tr><tr><td class="docs"><p>Converts the given REXP to a Clojure representation</p>
 </td><td class="codes"><pre class="brush: clojure">(defn into-clj
   [rexp]
   (cond (instance? RList rexp) (into-map rexp)
@@ -3245,7 +3246,7 @@ classes.  </p>
       (into-clj members)
       nil)))</pre></td></tr><tr><td class="docs"><p>Evaluates and parses the R expression cmd, and 
    throws an REngineException if the evaluation was unsuccesful.
-   Takes an optional parameter convert? indicating to 
+   Takes an optional parameter convert? indicating whether or not to 
    convert the returned REXP to a Clojure representation</p>
 </td><td class="codes"><pre class="brush: clojure">(defn parse 
   ([^RConnection R cmd]
@@ -3262,7 +3263,7 @@ classes.  </p>
     (map #(inc (.indexOf levels %)) lst)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn- cast-long
   [number] 
-  (Ints/checkedCast number))</pre></td></tr><tr><td class="docs"><p>Converts a sequential or a primitive to a 
+  (Ints/checkedCast number))</pre></td></tr><tr><td class="docs"><p>Converts Clojure data-structures into <br />
    subclass of <a href="http://rforge.net/org/doc/org/rosuda/REngine/REXPVector.html">REXPVector</a>.
    REngine does not recognize longs so it will attempt to cast them to integers</p>
 </td><td class="codes"><pre class="brush: clojure">(defn into-r
@@ -3275,7 +3276,8 @@ classes.  </p>
         (RList. (map into-r data-seq))))
     (let [is-seq (sequential? data-seq)
           el (if is-seq (first data-seq) data-seq)]
-      (cond 
+      (cond
+        (nil? el) (REXPNull.)
         (instance? Integer el) 
         (REXPInteger. (if is-seq (int-array data-seq) (int el))) 
         (instance? Long el) 
@@ -3329,7 +3331,7 @@ classes.  </p>
 <p>Clinici.co provides a way for exposing R scripts as a web service using 
 <a href="http://en.wikipedia.org/wiki/Representational_state_transfer">REST</a>.
 Currently this framework handles the loading and running of GeMTC consistency
-models, but should eventually not be restricted to this. </p>
+models, but should not be restricted to this. </p>
 
 <p>The typical life time of a Clinici.co session is roughly as follows: </p>
 
@@ -3366,63 +3368,7 @@ the user to retrieve the jobs he or she submitted but not others. </p>
             [ring.middleware.json :as ring-json]
             [clojure.tools.logging :as log]
             [compojure.route :as route]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn main [] ())</pre></td></tr><tr><td class="docs"><h3>Consistency models</h3>
-
-<p>Consistency models can be created based on a GeMTC network file
-in a multi-part form submit or, alternatively, by providing
-a network field in the following JSON format: </p>
-
-<pre><code>{"description":"",
-  "data":[
-    {
-      "study":"1",
-      "treatment":"A",
-      "mean":-1.22,
-      "std.dev":3.7,
-      "sampleSize":54
-    },
-    {
-      "study":"1",
-      "treatment":"B",
-      "mean":-1.2,
-      "std.dev":4.3,
-      "sampleSize":81
-    },
-    {
-      "study":"2",
-      "treatment":"B",
-      "mean":-1.8,
-      "std.dev":2.48,
-      "sampleSize":154
-    },
-    {
-      "study":"2",
-      "treatment":"B",
-      "mean":-2.1,
-      "std.dev":2.99,
-      "sampleSize":143
-    }
-  ],
-  "treatments":[
-    {
-      "id":"A",
-      "description":"Some medicine"
-    },
-    {
-      "id":"B",
-      "description":"Placebo"
-    },
-  ]
-}
-</code></pre>
-
-<p>Where each of the treatments must be present in the data and
-vice-versa. Furthermore for dichotomous networks the <code>mean</code> and
-<code>sampleSize</code> can be replaced by the field <code>responders</code>. 
-The description is optional. The excerpt above specifies a network with
-continuous data for two two-armed studies comparing treatments
-A and B. </p>
-</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn main [] ())</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defroutes routes-handler
   (context &quot;/api&quot; []
            (OPTIONS &quot;/&quot; []
@@ -3432,8 +3378,6 @@ A and B. </p>
                        id (job/submit analysis)
                        jobs (get-in (params :request) [:session :jobs])
                        job (str api-url &quot;/job/&quot; id)]
-                   (log/debug params)
-                   (log/debug method)
                    (assoc-in 
                      (http/created job (job/status id)) [:session :jobs] (conj jobs id))))
            (context &quot;/result&quot; []
@@ -3457,7 +3401,7 @@ A and B. </p>
 </td><td class="codes"><pre class="brush: clojure">(def app
   (-&gt;
     (handler/api routes-handler)
-    (ring-json/wrap-json-body)
+    (ring-json/wrap-json-params)
     (mp/wrap-multipart-params)
     (wrap-request-logger)
     (wrap-session)
