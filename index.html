@@ -3056,7 +3056,8 @@ net.brehaut.ClojureTools = (function (SH) {
   [^RConnection R analysis]
   (let [script (io/as-file (io/resource (str &quot;R/&quot; analysis &quot;.R&quot;)))]
     (if (nil? script)
-      (throw (IllegalArgumentException. (str &quot;Could not find specified analysis &quot; analysis)))
+      (throw (IllegalArgumentException. 
+        (str &quot;Could not find specified analysis &quot; analysis)))
       (do
         (copy-to-r! R script analysis) 
         (.voidEval R (str &quot;source('&quot;script&quot;')&quot;))
@@ -3100,10 +3101,13 @@ net.brehaut.ClojureTools = (function (SH) {
       (with-open [^RConnection R (R/connect)]
         (doall (map 
                  (fn [[k v]] 
-                   (copy-to-r! R (get-in v [:file :tempfile]) (get-in v [:file :filename]))) files))
+                   (copy-to-r! R 
+                    (get-in v [:file :tempfile]) 
+                    (get-in v [:file :filename]))) files))
         (load-analysis! R analysis)
         (R/assign R &quot;params&quot; options)
-        {:results {(keyword analysis) (parse-results (R/parse R (str analysis &quot;(params)&quot;) false))}}))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clinicico.R.store" name="clinicico.R.store"><h1 class="project-name">clinicico.R.store</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Store</h2>
+        {:results {(keyword analysis) (parse-results 
+                                        (R/parse R (str analysis &quot;(params)&quot;) false))}}))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clinicico.R.store" name="clinicico.R.store"><h1 class="project-name">clinicico.R.store</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Store</h2>
 
 <p>A simple MongoDB storage for the produced results. 
 Takes any map that includes a results field.</p>
@@ -3431,7 +3435,9 @@ the user to retrieve the jobs he or she submitted but not others. </p>
                                (resp/header &quot;Content-Length&quot; (.getLength record))))))
            (context &quot;/job&quot; [] 
                     (GET &quot;/session&quot; [:as req] 
-                         (resp/status (resp/response (map job/status (get-in req [:session :jobs]))) 200))
+                         (resp/status 
+                           (resp/response 
+                             (map job/status (get-in req [:session :jobs]))) 200))
                     (DELETE &quot;/:id&quot; [id]
                             (do (job/cancel id) 
                                 (resp/status (resp/response (job/status id)) 200)))
